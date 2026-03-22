@@ -204,6 +204,10 @@ summary() {
    echo "=========================" >> "$REPORT_FILE"
    echo "Report completed: $(date)" >> "$REPORT_FILE"
 
+   mail -s "Syscheck Report - $(hostname) - $(date +%Y-%m-%d)" \
+       -a "Content-Type: text/plain" \
+       JMatthews0503@gmail.com < "$REPORT_FILE"
+
    echo "   Report saved to:    $REPORT_FILE"
    echo "   Generated at:       $(date)"
    echo ""
