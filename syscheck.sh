@@ -104,12 +104,15 @@ memory_check() {
 disk_check() {
    print_header "Disk Usage"
 
+   echo "" >> "$REPORT_FILE"
+   echo "DISK USAGE" >> "$REPORT_FILE" 
+
    # Check ceach mounted filesystem
    while IFS= read -r line; do
        local usage=$(echo "$line" | awk '{print $5}' | tr -d '%')
        local mount=$(echo "$line" | awk '{print $6}')
-       local size=$(echo "$line" | awk '{print $2}')
-       local used=$(echo "$line" | awk '{print $3}')
+       local size=$(echo "$line"  | awk '{print $2}')
+       local used=$(echo "$line"  | awk '{print $3}')
 
        echo "   Mount: $mount"
        echo "   Size: $size     Used: $used (${usage}%)"
@@ -121,7 +124,7 @@ disk_check() {
        fi
        echo ""
 
-       echo "    Disk $mount: ${usage}% used" >> "$REPORT_FILE"    
+       echo "   Disk $mount: ${usage}% used" >> "$REPORT_FILE"    
    done < <(df -h | grep '^/dev/')
 }
 
@@ -129,6 +132,9 @@ disk_check() {
 # --- Network Check ---
 network_check() {
     print_header "Network Connectivity"
+
+    echo "" >> "$REPORT_FILE"
+    echo "NETWORK" >> "$REPORT_FILE"
 
     local hosts=("cloudflare.com" "github.com" "google.com")
     
@@ -162,8 +168,8 @@ process_check() {
         local mem=$(echo "$line" | awk '{print $4}')
         local cmd=$(echo "$line" | awk '{print $11}')
         printf "    %-30s CPU: %5s%%  MEM: %5s%%\n" \
-            "$(basename $cmd)" "$cpu" "$mem"
-        echo "  $(basename $cmd): CPU=${cpu}% MEM=${mem}%" >> "$REPORT_FILE"
+            "$(basename -- $cmd)" "$cpu" "$mem"
+        echo "  $(basename -- $cmd): CPU=${cpu}% MEM=${mem}%" >> "$REPORT_FILE"
     done <<< "$processes"
 }
 
