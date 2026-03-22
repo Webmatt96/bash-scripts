@@ -152,20 +152,28 @@ network_check() {
 process_check() {
     print_header "Top Processes by CPU"
 
-    ps aux --sort=%cpu | head -6 | tail -5 | \
+    echo "" >> "$REPORT_FILE"
+    echo "TOP PROCESSES" >> "$REPORT_FILE"
+
+    local processes=$(ps aux --sort=-%cpu | head -6 | tail -5)
+
     while read -r line; do
         local cpu=$(echo "$line" | awk '{print $3}')
         local mem=$(echo "$line" | awk '{print $4}')
         local cmd=$(echo "$line" | awk '{print $11}')
         printf "    %-30s CPU: %5s%%  MEM: %5s%%\n" \
             "$(basename $cmd)" "$cpu" "$mem"
-    done
+        echo "  $(basename $cmd): CPU=${cpu}% MEM=${mem}%" >> "$REPORT_FILE"
+    done <<< "$processes"
 }
 
 
-# --- IMportant Services Check ---
+# --- Important Services Check ---
 services_check() {
     print_header "Command Availability"
+
+    echo "" >> "$REPORT_FILE"
+    echo "COMMANDS" >> "$REPORT_FILE"
 
     local commands=("python3" "git" "nvim" "nasm" "gcc" "curl" "wget")
 
@@ -173,8 +181,10 @@ services_check() {
         if command -v "$cmd" &>/dev/null; then
             local version=$("$cmd" --version 2>&1 | head -1)
             print_ok "$cmd: $version"
+            echo "$cmd: OK - $(echo $version | cut -c1-50)" >> "$REPORT_FILE"
         else
             print_warn "$cmd: not found"
+            echo "  $cmd: NOT FOUND" >> "$REPORT_FILE"
         fi
     done
 }
@@ -183,6 +193,11 @@ services_check() {
 # --- Summary ---
 summary() {
    print_header "Report Summary"
+
+   echo "" >> "$REPORT_FILE"
+   echo "=========================" >> "$REPORT_FILE"
+   echo "Report completed: $(date)" >> "$REPORT_FILE"
+
    echo "   Report saved to:    $REPORT_FILE"
    echo "   Generated at:       $(date)"
    echo ""
